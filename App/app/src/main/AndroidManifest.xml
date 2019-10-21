@@ -19,7 +19,7 @@
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="face" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".CameraPreviewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
