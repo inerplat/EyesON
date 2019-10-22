@@ -175,9 +175,10 @@ public final class CameraPreviewActivity extends AppCompatActivity
                             inputStream.read(bytes);
                             String str = new String(bytes, "US-ASCII");
                             Log.d("ISBLE", str);
-                            if(bytes[0] == '!'){
-                                Log.d("ISBLE2","equal"+"@"+String.format("%.2f", LeftEyeOpenProbability)+"|"+String.format("%.2f",RightEyeOpenProbability)+"#\n");
-                                sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"#");
+                            if(str.equals("!~")){
+                                if(LeftEyeOpenProbability == -1 || RightEyeOpenProbability == -1)
+                                    sendData("#~");
+                                sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"~");
                                 LeftEyeOpenProbability = -1;
                                 RightEyeOpenProbability = -1;
 
@@ -200,8 +201,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
 
     @Override
     public synchronized void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-        // An item was selected. You can retrieve the selected item using
-        // parent.getItemAtPosition(pos)
+
         selectedModel = parent.getItemAtPosition(pos).toString();
         Log.d(TAG, "Selected model: " + selectedModel);
         preview.stop();
@@ -414,6 +414,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
             } else {
                 isBtConnected = true;
                 if(!address.equals("00:00:00:00:00:00")) makeToast("Connected");
+                sendData("$~");
             }
             progressDialog.dismiss();
         }
