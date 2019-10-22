@@ -123,39 +123,46 @@ public class CameraSourcePreview extends ViewGroup {
 
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    int width = 320;
-    int height = 240;
+    int previewWidth = 320;
+    int previewHeight = 240;
     if (cameraSource != null) {
       Size size = cameraSource.getPreviewSize();
       if (size != null) {
-        width = size.getWidth();
-        height = size.getHeight();
+        previewWidth = size.getWidth();
+        previewHeight = size.getHeight();
       }
     }
 
-    // Swap width and height sizes when in portrait, since it will be rotated 90 degrees
     if (isPortraitMode()) {
-      int tmp = width;
-      width = height;
-      height = tmp;
+      int tmp = previewWidth;
+      previewWidth = previewHeight;
+      previewHeight = tmp;
     }
 
-    final int layoutWidth = right - left;
-    final int layoutHeight = bottom - top;
+    final int viewWidth = right - left;
+    final int viewHeight = bottom - top;
 
-    // Computes height and width for potentially doing fit width.
-    int childWidth = layoutWidth;
-    int childHeight = (int) (((float) layoutWidth / (float) width) * height);
+    int childWidth;
+    int childHeight;
+    int childXOffset = 0;
+    int childYOffset = 0;
+    float widthRatio = (float) viewWidth / (float) previewWidth;
+    float heightRatio = (float) viewHeight / (float) previewHeight;
 
-    // If height is too tall using fit width, does fit height instead.
-    if (childHeight > layoutHeight) {
-      childHeight = layoutHeight;
-      childWidth = (int) (((float) layoutHeight / (float) height) * width);
+    if (widthRatio > heightRatio) {
+      childWidth = viewWidth;
+      childHeight = (int) ((float) previewHeight * widthRatio);
+      childYOffset = (childHeight - viewHeight) / 2;
+    } else {
+      childWidth = (int) ((float) previewWidth * heightRatio);
+      childHeight = viewHeight;
+      childXOffset = (childWidth - viewWidth) / 2;
     }
 
     for (int i = 0; i < getChildCount(); ++i) {
-      getChildAt(i).layout(0, 0, childWidth, childHeight);
-      Log.d(TAG, "Assigned view: " + i);
+      getChildAt(i).layout(
+              -1 * childXOffset, -1 * childYOffset,
+              childWidth - childXOffset, childHeight - childYOffset);
     }
 
     try {
