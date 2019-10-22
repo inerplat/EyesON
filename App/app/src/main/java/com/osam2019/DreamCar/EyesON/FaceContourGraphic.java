@@ -1,17 +1,25 @@
 package com.osam2019.DreamCar.EyesON;
+
+import android.annotation.SuppressLint;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Pair;
+
+
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay.Graphic;
 
-/** Graphic instance for rendering face contours graphic overlay view. */
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class FaceContourGraphic extends Graphic {
 
-  private static final float FACE_POSITION_RADIUS = 4.0f;
+  private static final float FACE_POSITION_RADIUS = 3.0f;
   private static final float ID_TEXT_SIZE = 30.0f;
   private static final float ID_Y_OFFSET = 80.0f;
   private static final float ID_X_OFFSET = -70.0f;
@@ -21,9 +29,25 @@ public class FaceContourGraphic extends Graphic {
   private final Paint idPaint;
   private final Paint boxPaint;
 
+  private volatile FirebaseVisionFace firebaseVisionFace;
   public static float LeftEyeOpenProbability = (float) 0.0;
   public static float RightEyeOpenProbability = (float) 0.0;
-  private volatile FirebaseVisionFace firebaseVisionFace;
+
+  public class ContourVar{
+    public FirebaseVisionFaceContour vContour;
+    public int color;
+    public float lineWidth;
+    public float circleRadius;
+    ContourVar(){}
+    ContourVar(FirebaseVisionFaceContour vContour, int color, float lineWidth, float circleRadius){
+      this.vContour=vContour;
+      this.color = color;
+      this.lineWidth = lineWidth;
+      this.circleRadius = circleRadius;
+    }
+  }
+
+  private static List<ContourVar> contourList;
 
   public FaceContourGraphic(GraphicOverlay overlay, FirebaseVisionFace face) {
     super(overlay);
@@ -35,17 +59,46 @@ public class FaceContourGraphic extends Graphic {
     facePositionPaint.setColor(selectedColor);
 
     idPaint = new Paint();
-    idPaint.setColor(selectedColor);
+    idPaint.setColor(Color.WHITE);
     idPaint.setTextSize(ID_TEXT_SIZE);
 
+
     boxPaint = new Paint();
-    boxPaint.setColor(selectedColor);
+    boxPaint.setColor(Color.RED);
     boxPaint.setStyle(Paint.Style.STROKE);
     boxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
 
+    contourList = new ArrayList<>();
+
+    contourList.add(new ContourVar(face.getContour(FirebaseVisionFaceContour.LEFT_EYE), Color.WHITE, 2.0f, 2.0f));
+    contourList.add(new ContourVar(face.getContour(FirebaseVisionFaceContour.RIGHT_EYE), Color.WHITE, 2.0f, 2.0f));
+
+    contourList.add(new ContourVar(face.getContour(FirebaseVisionFaceContour.LEFT_EYEBROW_BOTTOM), Color.BLACK, 2.0f, 4.0f));
+    contourList.add(new ContourVar(face.getContour(FirebaseVisionFaceContour.RIGHT_EYEBROW_BOTTOM), Color.BLACK, 2.0f, 4.0f));
+
+    contourList.add(new ContourVar(face.getContour(FirebaseVisionFaceContour.FACE), Color.BLUE, 2.0f, 4.0f));
+
+
+  }
+  public void drawCanvas(Canvas canvas, List<ContourVar> contourList){
+    for(ContourVar contour : contourList) {
+      for (int i = 1; i < contour.vContour.getPoints().size(); i++) {
+        FirebaseVisionPoint point = contour.vContour.getPoints().get(i);
+        FirebaseVisionPoint prevPoint = contour.vContour.getPoints().get(i - 1);
+        float px = translateX(point.getX());
+        float py = translateY(point.getY());
+        facePositionPaint.setColor(contour.color);
+        canvas.drawCircle(px, py, contour.circleRadius, facePositionPaint);
+        Paint paint = new Paint();
+        paint.setColor(contour.color);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(contour.lineWidth);
+        canvas.drawLine(px, py, translateX(prevPoint.getX()), translateY(prevPoint.getY()), paint);
+      }
+    }
   }
 
-  /** Draws the face annotations for position on the supplied canvas. */
+  @SuppressLint("DefaultLocale")
   @Override
   public void draw(Canvas canvas) {
     FirebaseVisionFace face = firebaseVisionFace;
@@ -53,13 +106,8 @@ public class FaceContourGraphic extends Graphic {
       return;
     }
 
-    // Draws a circle at the position of the detected face, with the face's track id below.
     float x = translateX(face.getBoundingBox().centerX());
     float y = translateY(face.getBoundingBox().centerY());
-    canvas.drawCircle(x, y, FACE_POSITION_RADIUS, facePositionPaint);
-    canvas.drawText("id: " + face.getTrackingId(), x + ID_X_OFFSET, y + ID_Y_OFFSET, idPaint);
-
-    // Draws a bounding box around the face.
     float xOffset = scaleX(face.getBoundingBox().width() / 2.0f);
     float yOffset = scaleY(face.getBoundingBox().height() / 2.0f);
     float left = x - xOffset;
@@ -68,70 +116,26 @@ public class FaceContourGraphic extends Graphic {
     float bottom = y + yOffset;
     canvas.drawRect(left, top, right, bottom, boxPaint);
 
-    FirebaseVisionFaceContour contour = face.getContour(FirebaseVisionFaceContour.ALL_POINTS);
-    for (com.google.firebase.ml.vision.common.FirebaseVisionPoint point : contour.getPoints()) {
-      float px = translateX(point.getX());
-      float py = translateY(point.getY());
-      canvas.drawCircle(px, py, FACE_POSITION_RADIUS, facePositionPaint);
-    }
 
-    if (face.getSmilingProbability() >= 0) {
-      canvas.drawText(
-          "happiness: " + String.format("%.2f", face.getSmilingProbability()),
-          x + ID_X_OFFSET * 3,
-          y - ID_Y_OFFSET,
-          idPaint);
-    }
+    drawCanvas(canvas, contourList);
 
+
+    LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
+    RightEyeOpenProbability = face.getRightEyeOpenProbability();
     if (face.getRightEyeOpenProbability() >= 0) {
       canvas.drawText(
-          "right eye: " + String.format("%.2f", face.getRightEyeOpenProbability()),
-          x - ID_X_OFFSET,
-          y,
-          idPaint);
+              "left eye: " + String.format("%.2f", face.getRightEyeOpenProbability()),
+              x + ID_X_OFFSET * 6,
+              y,
+              idPaint);
     }
     if (face.getLeftEyeOpenProbability() >= 0) {
       canvas.drawText(
-          "left eye: " + String.format("%.2f", face.getLeftEyeOpenProbability()),
-          x + ID_X_OFFSET * 6,
-          y,
-          idPaint);
-    }
-    LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
-    RightEyeOpenProbability = face.getRightEyeOpenProbability();
-    FirebaseVisionFaceLandmark leftEye = face.getLandmark(FirebaseVisionFaceLandmark.LEFT_EYE);
-    if (leftEye != null && leftEye.getPosition() != null) {
-      canvas.drawCircle(
-          translateX(leftEye.getPosition().getX()),
-          translateY(leftEye.getPosition().getY()),
-          FACE_POSITION_RADIUS,
-          facePositionPaint);
-    }
-    FirebaseVisionFaceLandmark rightEye = face.getLandmark(FirebaseVisionFaceLandmark.RIGHT_EYE);
-    if (rightEye != null && rightEye.getPosition() != null) {
-      canvas.drawCircle(
-          translateX(rightEye.getPosition().getX()),
-          translateY(rightEye.getPosition().getY()),
-          FACE_POSITION_RADIUS,
-          facePositionPaint);
+              "right eye: " + String.format("%.2f", face.getLeftEyeOpenProbability()),
+              x - ID_X_OFFSET,
+              y,
+              idPaint);
     }
 
-    FirebaseVisionFaceLandmark leftCheek = face.getLandmark(FirebaseVisionFaceLandmark.LEFT_CHEEK);
-    if (leftCheek != null && leftCheek.getPosition() != null) {
-      canvas.drawCircle(
-          translateX(leftCheek.getPosition().getX()),
-          translateY(leftCheek.getPosition().getY()),
-          FACE_POSITION_RADIUS,
-          facePositionPaint);
-    }
-    FirebaseVisionFaceLandmark rightCheek =
-        face.getLandmark(FirebaseVisionFaceLandmark.RIGHT_CHEEK);
-    if (rightCheek != null && rightCheek.getPosition() != null) {
-      canvas.drawCircle(
-          translateX(rightCheek.getPosition().getX()),
-          translateY(rightCheek.getPosition().getY()),
-          FACE_POSITION_RADIUS,
-          facePositionPaint);
-    }
   }
 }
