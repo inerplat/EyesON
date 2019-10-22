@@ -122,16 +122,19 @@ public class FaceContourGraphic extends Graphic {
 
     LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
     RightEyeOpenProbability = face.getRightEyeOpenProbability();
-    if (face.getRightEyeOpenProbability() >= 0) {
+    LeftEyeOpenProbability = LeftEyeOpenProbability < 0 ? -2 : LeftEyeOpenProbability;
+    RightEyeOpenProbability = RightEyeOpenProbability < 0 ? -2 : RightEyeOpenProbability;
+
+    if (LeftEyeOpenProbability >= 0) {
       canvas.drawText(
-              "left eye: " + String.format("%.2f", face.getRightEyeOpenProbability()),
+              "left eye: " + String.format("%.2f", LeftEyeOpenProbability),
               x + ID_X_OFFSET * 6,
               y,
               idPaint);
     }
-    if (face.getLeftEyeOpenProbability() >= 0) {
+    if (RightEyeOpenProbability >= 0) {
       canvas.drawText(
-              "right eye: " + String.format("%.2f", face.getLeftEyeOpenProbability()),
+              "right eye: " + String.format("%.2f", RightEyeOpenProbability),
               x - ID_X_OFFSET,
               y,
               idPaint);

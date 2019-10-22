@@ -1,5 +1,5 @@
 package com.osam2019.DreamCar.EyesON;
-import android.annotation.SuppressLint;
+
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,11 +15,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
-import android.widget.Spinner;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -71,7 +67,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public static int readBufferPosition;
     public static Thread workerThread = null;
     public static InputStream inputStream = null;
-
+    public static long prevTime=0 ,nowTime=0;
 
     private int newConnectionFlag = 0;
     @Override
@@ -165,16 +161,17 @@ public final class CameraPreviewActivity extends AppCompatActivity
         readBuffer = new byte[1024];
         workerThread = new Thread(() -> {
             while(!Thread.currentThread().isInterrupted()) {
-
+                prevTime = nowTime;
                 try {
                     int byteAvailable = inputStream.available();
-                    if(byteAvailable > 0) {
+                    if(byteAvailable >= 2) {
                         byte[] bytes = new byte[byteAvailable];
                         inputStream.read(bytes);
                         String str = new String(bytes, "US-ASCII");
                         Log.d("bluetoothData", "received : " + str.substring(str.length()-2, str.length()));
-                        if(str.substring(str.length()-2, str.length()).equals("!~")){
-                            if(LeftEyeOpenProbability == -1 || RightEyeOpenProbability == -1)
+                        if(str.length()>=2 && str.substring(str.length()-2, str.length()).equals("!~")){
+                            while(LeftEyeOpenProbability==-1 && RightEyeOpenProbability ==-1);
+                            if(LeftEyeOpenProbability == -2 || RightEyeOpenProbability == -2)
                                 sendData("#~");
                             else
                                 sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"~");
@@ -186,11 +183,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                nowTime = System.currentTimeMillis();
             }
         });
         workerThread.start();

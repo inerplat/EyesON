@@ -111,22 +111,14 @@ public abstract class VisionProcessorBase<T> implements VisionImageProcessor {
             final GraphicOverlay graphicOverlay) {
         detectInImage(image)
                 .addOnSuccessListener(
-                        new OnSuccessListener<T>() {
-                            @Override
-                            public void onSuccess(T results) {
-                                VisionProcessorBase.this.onSuccess(originalCameraImage, results,
-                                        metadata,
-                                        graphicOverlay);
-                                processLatestImage(graphicOverlay);
-                            }
+                        results -> {
+                            VisionProcessorBase.this.onSuccess(originalCameraImage, results,
+                                    metadata,
+                                    graphicOverlay);
+                            processLatestImage(graphicOverlay);
                         })
                 .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                VisionProcessorBase.this.onFailure(e);
-                            }
-                        });
+                        e -> VisionProcessorBase.this.onFailure(e));
     }
 
     @Override
