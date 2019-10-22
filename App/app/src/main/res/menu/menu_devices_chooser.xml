@@ -5,7 +5,7 @@
         android:id="@+id/Debug"
         android:checkable="true"
         app:showAsAction="always"
-        android:title="no_bluetooth"
+        android:title="Continue"
         />
 
 </menu>
