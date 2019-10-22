@@ -1,21 +1,15 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
 package com.osam2019.DreamCar.EyesON;
-
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -39,8 +33,16 @@ import com.osam2019.DreamCar.EyesON.google.CameraSourcePreview;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.EXTRA_DEVICE_ADDRESS;
+import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.REQUEST_ENABLE_BT;
+import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.LeftEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.RightEyeOpenProbability;
+
 
 @KeepName
 public final class CameraPreviewActivity extends AppCompatActivity
@@ -49,19 +51,42 @@ public final class CameraPreviewActivity extends AppCompatActivity
         CompoundButton.OnCheckedChangeListener {
     private static final String FACE_DETECTION = "Face Detection";
     private static final String FACE_CONTOUR = "Face Contour";
-    private static final String TAG = "CameraPreviewActivity";
+    private static final String TAG = "LivePreviewActivity";
     private static final int PERMISSION_REQUESTS = 1;
 
     private CameraSource cameraSource = null;
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
     private String selectedModel = FACE_CONTOUR;
+    String address = null;
 
+    private ProgressDialog progressDialog;
+    BluetoothAdapter myBluetoothAdapter = null;
+    static BluetoothSocket btSocket = null;
+    private boolean isBtConnected = false;
+    static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    public static byte[] readBuffer;
+    public static int readBufferPosition;
+    public static Thread workerThread = null;
+    public static InputStream inputStream = null;
+
+
+    private int newConnectionFlag = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_live_preview);
+        Intent newIntent = getIntent();
+        address = newIntent.getStringExtra(EXTRA_DEVICE_ADDRESS);
+
+        myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!myBluetoothAdapter.isEnabled()) {
+            Intent enableIntentBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntentBluetooth, REQUEST_ENABLE_BT);
+        }
+
 
         preview = findViewById(R.id.firePreview);
         if (preview == null) {
@@ -77,25 +102,72 @@ public final class CameraPreviewActivity extends AppCompatActivity
         options.add(FACE_CONTOUR);
         options.add(FACE_DETECTION);
 
-        // Creating adapter for spinner
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this, R.layout.spinner_style,
                 options);
-        // Drop down layout style - list view with radio button
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // attaching data adapter to spinner
         spinner.setAdapter(dataAdapter);
         spinner.setOnItemSelectedListener(this);
 
         ToggleButton facingSwitch = findViewById(R.id.facingSwitch);
         facingSwitch.setOnCheckedChangeListener(this);
-        // Hide the toggle button if there is only 1 camera
+        if (Camera.getNumberOfCameras() == 1) {
+            facingSwitch.setVisibility(View.GONE);
+        }
 
         if (allPermissionsGranted()) {
             createCameraSource(selectedModel);
         } else {
             getRuntimePermissions();
         }
+        cameraSource.setFacing(CameraSource.CAMERA_FACING_FRONT);
     }
+    private void sendData(String data) {
+        if (btSocket != null) {
+            try {
+                btSocket.getOutputStream().write(data.getBytes());
+            } catch (IOException e) {
+                makeToast("Error");
+            }
+        }
+    }
+    public void receiveData() {
+        readBufferPosition = 0;
+        readBuffer = new byte[1024];
+        workerThread = new Thread(new Runnable() {
+            @SuppressLint("DefaultLocale")
+            @Override
+            public void run() {
+                while(!Thread.currentThread().isInterrupted()) {
+
+                    try {
+                        int byteAvailable = inputStream.available();
+                        if(byteAvailable > 0) {
+                            byte[] bytes = new byte[byteAvailable];
+                            inputStream.read(bytes);
+                            String str = new String(bytes, "US-ASCII");
+                            Log.d("ISBLE", str);
+                            if(bytes[0] == '!'){
+                                Log.d("ISBLE2","equal"+"@"+String.format("%.2f", LeftEyeOpenProbability)+"|"+String.format("%.2f",RightEyeOpenProbability)+"#\n");
+                                sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"#");
+                                LeftEyeOpenProbability = -1;
+                                RightEyeOpenProbability = -1;
+
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        workerThread.start();
+    }
+
 
     @Override
     public synchronized void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
@@ -121,7 +193,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         Log.d(TAG, "Set facing");
         if (cameraSource != null) {
-            if (isChecked) {
+            if (!isChecked) {
                 cameraSource.setFacing(CameraSource.CAMERA_FACING_FRONT);
             } else {
                 cameraSource.setFacing(CameraSource.CAMERA_FACING_BACK);
@@ -138,17 +210,18 @@ public final class CameraPreviewActivity extends AppCompatActivity
         }
 
         try {
-            switch (model) {
-//                case FACE_DETECTION:
-//                    Log.i(TAG, "Using Face Detector Processor");
-//                    cameraSource.setMachineLearningFrameProcessor(new FaceDetectionProcessor(getResources()));
-//                    break;
+            switch(model) {
                 case FACE_CONTOUR:
                     Log.i(TAG, "Using Face Contour Detector Processor");
                     cameraSource.setMachineLearningFrameProcessor(new FaceContourDetectorProcessor());
                     break;
-                default:
-                    Log.e(TAG, "Unknown model: " + model);
+                    /*
+                case FACE_DETECTION:
+                    Log.i(TAG, "Using Face Detector Processor");
+                    cameraSource.setMachineLearningFrameProcessor(new FaceDetectorProcessor());
+                    break;
+                     */
+
             }
         } catch (Exception e) {
             Log.e(TAG, "Can not create image processor: " + model, e);
@@ -182,9 +255,19 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+        newConnectionFlag++;
+        if (address != null) {
+            //call the class to connect to bluetooth
+            if (newConnectionFlag == 1) {
+                new ConnectBT().execute();
+            }
+        }
         startCameraSource();
     }
 
+    /**
+     * Stops the camera.
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -197,6 +280,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
         if (cameraSource != null) {
             cameraSource.release();
         }
+        Disconnect();
     }
 
     private String[] getRequiredPermissions() {
@@ -256,5 +340,67 @@ public final class CameraPreviewActivity extends AppCompatActivity
         }
         Log.i(TAG, "Permission NOT granted: " + permission);
         return false;
+    }
+    private class ConnectBT extends AsyncTask<Void, Void, Void> {
+        private boolean connectSuccess = true;
+
+        @Override
+        protected void onPreExecute() {
+
+            //show a progress dialog
+            progressDialog = ProgressDialog.show(CameraPreviewActivity.this,
+                    "Connecting...", "Please wait!!!");
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                if(address.equals("00:00:00:00:00:00"))
+                    return null;
+                if (btSocket == null || !isBtConnected) {
+                    myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                    BluetoothDevice bluetoothDevice = myBluetoothAdapter.getRemoteDevice(address);
+                    btSocket = bluetoothDevice.createInsecureRfcommSocketToServiceRecord(myUUID);
+                    BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+                    btSocket.connect();
+                    inputStream = btSocket.getInputStream();
+                    receiveData();
+                }
+
+            } catch (IOException e) {
+                connectSuccess = false;
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            Log.e(TAG, connectSuccess + "");
+            if (!connectSuccess) {
+                makeToast("Connection Failed. Is it a SPP Bluetooth? Try again.");
+                finish();
+            } else {
+                isBtConnected = true;
+                if(!address.equals("00:00:00:00:00:00")) makeToast("Connected");
+            }
+            progressDialog.dismiss();
+        }
+    }
+    private void makeToast(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    }
+    private void Disconnect() {
+        if (btSocket != null) //If the btSocket is busy
+        {
+            try {
+                btSocket.close(); //close connection
+            } catch (IOException e) {
+                makeToast("Error");
+            }
+        }
     }
 }
