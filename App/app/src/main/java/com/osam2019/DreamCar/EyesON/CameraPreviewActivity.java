@@ -151,6 +151,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     }
 
     private void sendData(String data) {
+        Log.d("bluetoothData", "send : "+data);
         if (btSocket != null) {
             try {
                 btSocket.getOutputStream().write(data.getBytes());
@@ -162,35 +163,33 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public void receiveData() {
         readBufferPosition = 0;
         readBuffer = new byte[1024];
-        workerThread = new Thread(new Runnable() {
-            @SuppressLint("DefaultLocale")
-            @Override
-            public void run() {
-                while(!Thread.currentThread().isInterrupted()) {
+        workerThread = new Thread(() -> {
+            while(!Thread.currentThread().isInterrupted()) {
 
-                    try {
-                        int byteAvailable = inputStream.available();
-                        if(byteAvailable > 0) {
-                            byte[] bytes = new byte[byteAvailable];
-                            inputStream.read(bytes);
-                            String str = new String(bytes, "US-ASCII");
-                            Log.d("ISBLE", str);
-                            if(bytes[0] == '!'){
-                                Log.d("ISBLE2","equal"+"@"+String.format("%.2f", LeftEyeOpenProbability)+"|"+String.format("%.2f",RightEyeOpenProbability)+"#\n");
-                                sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"#");
-                                LeftEyeOpenProbability = -1;
-                                RightEyeOpenProbability = -1;
+                try {
+                    int byteAvailable = inputStream.available();
+                    if(byteAvailable > 0) {
+                        byte[] bytes = new byte[byteAvailable];
+                        inputStream.read(bytes);
+                        String str = new String(bytes, "US-ASCII");
+                        Log.d("bluetoothData", "received : " + str.substring(str.length()-2, str.length()));
+                        if(str.substring(str.length()-2, str.length()).equals("!~")){
+                            if(LeftEyeOpenProbability == -1 || RightEyeOpenProbability == -1)
+                                sendData("#~");
+                            else
+                                sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"~");
+                            LeftEyeOpenProbability = -1;
+                            RightEyeOpenProbability = -1;
 
-                            }
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -200,8 +199,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
 
     @Override
     public synchronized void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-        // An item was selected. You can retrieve the selected item using
-        // parent.getItemAtPosition(pos)
+
         selectedModel = parent.getItemAtPosition(pos).toString();
         Log.d(TAG, "Selected model: " + selectedModel);
         preview.stop();
@@ -293,9 +291,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
         startCameraSource();
     }
 
-    /**
-     * Stops the camera.
-     */
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -414,6 +410,9 @@ public final class CameraPreviewActivity extends AppCompatActivity
             } else {
                 isBtConnected = true;
                 if(!address.equals("00:00:00:00:00:00")) makeToast("Connected");
+                LeftEyeOpenProbability = -1;
+                RightEyeOpenProbability = -1;
+                sendData("$~");
             }
             progressDialog.dismiss();
         }

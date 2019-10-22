@@ -27,5 +27,5 @@
             android:layout_alignParentLeft="true" />
     </com.osam2019.DreamCar.EyesON.google.CameraSourcePreview>
 
-    
+
 </RelativeLayout>
