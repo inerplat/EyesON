@@ -27,12 +27,13 @@ public class FaceContourGraphic extends Graphic {
 
   private final Paint facePositionPaint;
   private final Paint idPaint;
-  private final Paint boxPaint;
+  private Paint boxPaint;
 
   private volatile FirebaseVisionFace firebaseVisionFace;
   public static float LeftEyeOpenProbability = (float) 0.0;
   public static float RightEyeOpenProbability = (float) 0.0;
-
+  public static int drowsinessTime = 0;
+  public static long prevTime=0, nowTime=0;
   public class ContourVar{
     public FirebaseVisionFaceContour vContour;
     public int color;
@@ -63,10 +64,7 @@ public class FaceContourGraphic extends Graphic {
     idPaint.setTextSize(ID_TEXT_SIZE);
 
 
-    boxPaint = new Paint();
-    boxPaint.setColor(Color.RED);
-    boxPaint.setStyle(Paint.Style.STROKE);
-    boxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
+
 
     contourList = new ArrayList<>();
 
@@ -101,6 +99,7 @@ public class FaceContourGraphic extends Graphic {
   @SuppressLint("DefaultLocale")
   @Override
   public void draw(Canvas canvas) {
+    prevTime = nowTime;
     FirebaseVisionFace face = firebaseVisionFace;
     if (face == null) {
       return;
@@ -114,6 +113,15 @@ public class FaceContourGraphic extends Graphic {
     float top = y - yOffset;
     float right = x + xOffset;
     float bottom = y + yOffset;
+
+    boxPaint = new Paint();
+    if(drowsinessTime >= 600)
+      boxPaint.setColor(Color.RED);
+    else
+      boxPaint.setColor(Color.WHITE);
+    boxPaint.setStyle(Paint.Style.STROKE);
+    boxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
+
     canvas.drawRect(left, top, right, bottom, boxPaint);
 
 
@@ -139,6 +147,10 @@ public class FaceContourGraphic extends Graphic {
               y,
               idPaint);
     }
-
+    nowTime = System.currentTimeMillis();
+    if(LeftEyeOpenProbability >= 0.5 && RightEyeOpenProbability >= 0.5)
+      drowsinessTime = 0;
+    else
+      drowsinessTime += nowTime-prevTime;
   }
 }

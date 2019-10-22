@@ -67,8 +67,6 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public static int readBufferPosition;
     public static Thread workerThread = null;
     public static InputStream inputStream = null;
-    public static long prevTime=0 ,nowTime=0;
-
     private int newConnectionFlag = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,7 +159,6 @@ public final class CameraPreviewActivity extends AppCompatActivity
         readBuffer = new byte[1024];
         workerThread = new Thread(() -> {
             while(!Thread.currentThread().isInterrupted()) {
-                prevTime = nowTime;
                 try {
                     int byteAvailable = inputStream.available();
                     if(byteAvailable >= 2) {
@@ -170,6 +167,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
                         String str = new String(bytes, "US-ASCII");
                         Log.d("bluetoothData", "received : " + str.substring(str.length()-2, str.length()));
                         if(str.length()>=2 && str.substring(str.length()-2, str.length()).equals("!~")){
+                            Log.d("drow", String.format("%d", (int) FaceContourGraphic.drowsinessTime));
                             while(LeftEyeOpenProbability==-1 && RightEyeOpenProbability ==-1);
                             if(LeftEyeOpenProbability == -2 || RightEyeOpenProbability == -2)
                                 sendData("#~");
@@ -183,7 +181,6 @@ public final class CameraPreviewActivity extends AppCompatActivity
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                nowTime = System.currentTimeMillis();
             }
         });
         workerThread.start();
