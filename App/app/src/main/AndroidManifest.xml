@@ -5,6 +5,8 @@
     package="com.osam2019.DreamCar.EyesON">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <dist:module dist:instant="true" />
 
     <application
@@ -19,6 +21,9 @@
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
             android:value="face" />
         <activity android:name=".CameraPreviewActivity">
+
+        </activity>
+        <activity android:name=".BluetoothChooserActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -12,7 +12,6 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
-import com.osam2019.DreamCar.EyesON.VisionProcessorBase;
 import com.osam2019.DreamCar.EyesON.google.CameraImageGraphic;
 import com.osam2019.DreamCar.EyesON.google.FrameMetadata;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
@@ -33,6 +32,7 @@ public class FaceContourDetectorProcessor extends VisionProcessorBase<List<Fireb
         FirebaseVisionFaceDetectorOptions options =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
                         .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .build();
 
