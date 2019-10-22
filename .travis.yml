@@ -1,0 +1,12 @@
+sudo: required
+language: android
+dist: trusty
+android:
+  components:
+    - build-tools-29.0.2
+    - android-29
+before_install:
+  - chmod +x App/gradlew
+  - chmod +rx App/app 
+script:
+  - App/gradlew build
