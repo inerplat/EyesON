@@ -21,6 +21,8 @@ public class FaceContourGraphic extends Graphic {
   private final Paint idPaint;
   private final Paint boxPaint;
 
+  public static float LeftEyeOpenProbability = (float) 0.0;
+  public static float RightEyeOpenProbability = (float) 0.0;
   private volatile FirebaseVisionFace firebaseVisionFace;
 
   public FaceContourGraphic(GraphicOverlay overlay, FirebaseVisionFace face) {
@@ -40,6 +42,7 @@ public class FaceContourGraphic extends Graphic {
     boxPaint.setColor(selectedColor);
     boxPaint.setStyle(Paint.Style.STROKE);
     boxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
+
   }
 
   /** Draws the face annotations for position on the supplied canvas. */
@@ -94,6 +97,8 @@ public class FaceContourGraphic extends Graphic {
           y,
           idPaint);
     }
+    LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
+    RightEyeOpenProbability = face.getRightEyeOpenProbability();
     FirebaseVisionFaceLandmark leftEye = face.getLandmark(FirebaseVisionFaceLandmark.LEFT_EYE);
     if (leftEye != null && leftEye.getPosition() != null) {
       canvas.drawCircle(
