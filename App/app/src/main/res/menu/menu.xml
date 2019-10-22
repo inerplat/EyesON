@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/Contour"
+        android:checkable="true"
+        android:icon="@drawable/face"
+        app:showAsAction="always"
+        android:title="윤곽선 표시"
+        />
+
+    <item
+        android:id="@+id/CameraCheck"
+        android:checkable="true"
+        android:icon="@drawable/camera"
+        android:title="카메라 전환"
+        app:showAsAction="always" />
+
+</menu>

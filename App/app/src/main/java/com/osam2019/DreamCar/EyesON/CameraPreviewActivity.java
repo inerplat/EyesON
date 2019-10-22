@@ -12,6 +12,7 @@ import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -97,23 +98,6 @@ public final class CameraPreviewActivity extends AppCompatActivity
             Log.d(TAG, "graphicOverlay is null");
         }
 
-        Spinner spinner = findViewById(R.id.spinner);
-        List<String> options = new ArrayList<>();
-        options.add(FACE_CONTOUR);
-        options.add(FACE_DETECTION);
-
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this, R.layout.spinner_style,
-                options);
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(dataAdapter);
-        spinner.setOnItemSelectedListener(this);
-
-        ToggleButton facingSwitch = findViewById(R.id.facingSwitch);
-        facingSwitch.setOnCheckedChangeListener(this);
-        if (Camera.getNumberOfCameras() == 1) {
-            facingSwitch.setVisibility(View.GONE);
-        }
-
         if (allPermissionsGranted()) {
             createCameraSource(selectedModel);
         } else {
@@ -121,6 +105,51 @@ public final class CameraPreviewActivity extends AppCompatActivity
         }
         cameraSource.setFacing(CameraSource.CAMERA_FACING_FRONT);
     }
+
+    public boolean onCreateOptionsMenu(android.view.Menu menu){
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected (MenuItem item)
+    {
+        Toast toast = Toast.makeText(getApplicationContext(),"", Toast.LENGTH_LONG);
+        preview.stop();
+        switch(item.getItemId())
+        {
+            case R.id.CameraCheck:
+                Log.d(TAG, "Set facing");
+                if (cameraSource != null) {
+                    if (cameraSource.getCameraFacing() == cameraSource.CAMERA_FACING_BACK) {
+                        cameraSource.setFacing(CameraSource.CAMERA_FACING_FRONT);
+                    } else {
+                        cameraSource.setFacing(CameraSource.CAMERA_FACING_BACK);
+                    }
+                }
+                preview.stop();
+                startCameraSource();
+                break;
+            case R.id.Contour:
+                int status = FaceContourDetectorProcessor.getStatus();
+                if(status == 0) {
+                    createCameraSource(FACE_CONTOUR);
+                    startCameraSource();
+                    toast.setText("윤곽선 표시 설정");
+                }
+                else{
+                    createCameraSource(FACE_DETECTION);
+                    startCameraSource();
+                    toast.setText("윤곽선 표시 해제");
+                }
+                break;
+        }
+
+        toast.show();
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private void sendData(String data) {
         if (btSocket != null) {
             try {
@@ -213,14 +242,13 @@ public final class CameraPreviewActivity extends AppCompatActivity
             switch(model) {
                 case FACE_CONTOUR:
                     Log.i(TAG, "Using Face Contour Detector Processor");
-                    cameraSource.setMachineLearningFrameProcessor(new FaceContourDetectorProcessor());
+                    cameraSource.setMachineLearningFrameProcessor(new FaceContourDetectorProcessor("Contour"));
                     break;
-                    /*
+
                 case FACE_DETECTION:
                     Log.i(TAG, "Using Face Detector Processor");
-                    cameraSource.setMachineLearningFrameProcessor(new FaceDetectorProcessor());
+                    cameraSource.setMachineLearningFrameProcessor(new FaceContourDetectorProcessor("Detect"));
                     break;
-                     */
 
             }
         } catch (Exception e) {

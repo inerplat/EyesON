@@ -27,18 +27,29 @@ public class FaceContourDetectorProcessor extends VisionProcessorBase<List<Fireb
     private static final String TAG = "FaceContourDetectorProc";
 
     private final FirebaseVisionFaceDetector detector;
-
-    public FaceContourDetectorProcessor() {
-        FirebaseVisionFaceDetectorOptions options =
-                new FirebaseVisionFaceDetectorOptions.Builder()
-                        .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
-                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
-                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                        .build();
-
+    public static int status = 0;
+    public FaceContourDetectorProcessor(String mode) {
+        FirebaseVisionFaceDetectorOptions options = null;
+        if(mode.equals("Contour")) {
+            options = new FirebaseVisionFaceDetectorOptions.Builder()
+                    .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
+                    .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                    .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
+                    .build();
+            status = 1;
+        }
+        else if(mode.equals("Detect")){
+            options = new FirebaseVisionFaceDetectorOptions.Builder()
+                    .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
+                    .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                    .build();
+            status = 0;
+        }
         detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
     }
-
+    public static int getStatus(){
+        return status;
+    }
     @Override
     public void stop() {
         try {
