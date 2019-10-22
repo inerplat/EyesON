@@ -111,6 +111,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     {
         Toast toast = Toast.makeText(getApplicationContext(),"", Toast.LENGTH_LONG);
         preview.stop();
+        workerThread.interrupt();
         switch(item.getItemId())
         {
             case R.id.CameraCheck:
@@ -139,7 +140,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
                 }
                 break;
         }
-
+        receiveData();
         toast.show();
 
         return super.onOptionsItemSelected(item);
@@ -295,6 +296,13 @@ public final class CameraPreviewActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
+        workerThread.interrupt();
+        preview.stop();
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         if (cameraSource != null) {
             cameraSource.release();
         }
