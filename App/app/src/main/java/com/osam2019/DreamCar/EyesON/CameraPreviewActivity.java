@@ -39,6 +39,7 @@ import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.EXTRA_DEVICE
 import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.REQUEST_ENABLE_BT;
 import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.LeftEyeOpenProbability;
 import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.RightEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.drowsinessTime;
 
 
 @KeepName
@@ -165,9 +166,9 @@ public final class CameraPreviewActivity extends AppCompatActivity
                         byte[] bytes = new byte[byteAvailable];
                         inputStream.read(bytes);
                         String str = new String(bytes, "US-ASCII");
-                        Log.d("bluetoothData", "received : " + str.substring(str.length()-2, str.length()));
-                        if(str.length()>=2 && str.substring(str.length()-2, str.length()).equals("!~")){
-                            Log.d("drow", String.format("%d", (int) FaceContourGraphic.drowsinessTime));
+                        String substring = str.substring(str.length() - 2, str.length());
+                        Log.d("bluetoothData", "received : " + substring);
+                        if(substring.equals("!~")){
                             while(LeftEyeOpenProbability==-1 && RightEyeOpenProbability ==-1);
                             if(LeftEyeOpenProbability == -2 || RightEyeOpenProbability == -2)
                                 sendData("#~");
@@ -176,6 +177,9 @@ public final class CameraPreviewActivity extends AppCompatActivity
                             LeftEyeOpenProbability = -1;
                             RightEyeOpenProbability = -1;
 
+                        }
+                        if(substring.equals("^~")){
+                            sendData("%"+ (drowsinessTime > 600 ? "1" : "0") + "~");
                         }
                     }
                 } catch (IOException e) {
