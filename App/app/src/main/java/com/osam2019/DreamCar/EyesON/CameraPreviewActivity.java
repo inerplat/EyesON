@@ -38,9 +38,9 @@ import java.util.UUID;
 
 import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.EXTRA_DEVICE_ADDRESS;
 import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.REQUEST_ENABLE_BT;
-import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.LeftEyeOpenProbability;
-import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.RightEyeOpenProbability;
-import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.SmileProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.LeftEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.RightEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.SmileProbability;
 import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.drowsinessTime;
 
 
@@ -164,27 +164,28 @@ public final class CameraPreviewActivity extends AppCompatActivity
         readBufferPosition = 0;
         readBuffer = new byte[1024];
         workerThread = new Thread(() -> {
+            String str = new String();
             while(!Thread.currentThread().isInterrupted()) {
                 try {
                     int byteAvailable = inputStream.available();
                     if(byteAvailable >= 2) {
                         byte[] bytes = new byte[byteAvailable];
                         inputStream.read(bytes);
-                        String str = new String(bytes, "US-ASCII");
-                        String substring = str.substring(str.length() - 2, str.length());
-                        Log.d("bluetoothData", "received : " + substring);
-                        if(substring.equals("!~")){
-                            while(LeftEyeOpenProbability==-1 && RightEyeOpenProbability ==-1);
-                            if(LeftEyeOpenProbability == -2 || RightEyeOpenProbability == -2)
-                                sendData("#~");
-                            else
-                                sendData("@"+String.format("%.2f", LeftEyeOpenProbability).replace(".","")+String.format("%.2f",RightEyeOpenProbability).replace(".","")+"~");
-                            LeftEyeOpenProbability = -1;
-                            RightEyeOpenProbability = -1;
-
-                        }
-                        if(substring.equals("^~")){
-                            sendData("%"+ (SmileProbability >= 0.7 ? 2 : drowsinessTime > 600 ? "1" : "0") + "~");
+                        str += new String(bytes, "US-ASCII");
+                        Log.d("bluetoothData", "received : " + str);
+                        while(str!=null && str.length()>= 2){
+                            String subString = str.substring(0, 2);
+                            if(subString.equals("!~")) {
+                                if (LeftEyeOpenProbability == -2 || RightEyeOpenProbability == -2)
+                                    sendData("#~");
+                                else
+                                    sendData("@" + String.format("%.2f", LeftEyeOpenProbability).replace(".", "") + String.format("%.2f", RightEyeOpenProbability).replace(".", "") + "~");
+                            }
+                            else if (subString.equals("^~")) {
+                                sendData("%" + (SmileProbability >= 0.7 ? "2" : drowsinessTime > 600 ? "1" : "0") + "~");
+                            }
+                            str = str.length() > 2 ? str.substring(2) : "";
+                            Log.d("bluetoothData", "now : " + str);
                         }
                     }
                 } catch (IOException e) {
@@ -300,7 +301,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(!address.equals("00:00:00:00:00:00")) workerThread.interrupt();
+        if(workerThread.isAlive()) workerThread.interrupt();
         preview.stop();
         try {
             inputStream.close();
