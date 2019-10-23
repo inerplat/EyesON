@@ -1,8 +1,8 @@
 # EyesON : 졸음운전 방지 솔루션 
 
 [![Build Status](https://travis-ci.org/inerplat/EyesON.svg?branch=master)](https://travis-ci.org/inerplat/EyesON)
-![GitHub](https://img.shields.io/github/license/inerplat/EyesON)
-![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/inerplat/EyesON?include_prereleases)
+[![GitHub](https://img.shields.io/github/license/inerplat/EyesON)](https://github.com/inerplat/EyesON/blob/master/LICENSE)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/inerplat/EyesON?include_prereleases)](https://github.com/inerplat/EyesON/releases)
 
 사용자의 얼굴을 분석해 졸음 여부를 파악하고, 임베디드 단말기와 연결하여 경고를 주는 솔루션 입니다.
 
