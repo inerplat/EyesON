@@ -11,22 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.osam2019.DreamCar.EyesON;
+package com.osam2019.DreamCar.EyesON.google;
 import android.graphics.Bitmap;
 
 import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
-import com.osam2019.DreamCar.EyesON.google.BitmapUtils;
-import com.osam2019.DreamCar.EyesON.google.FrameMetadata;
-import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
-import com.osam2019.DreamCar.EyesON.google.VisionImageProcessor;
 
 import java.nio.ByteBuffer;
 

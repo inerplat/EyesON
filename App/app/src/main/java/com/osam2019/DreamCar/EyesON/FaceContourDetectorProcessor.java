@@ -15,6 +15,7 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 import com.osam2019.DreamCar.EyesON.google.CameraImageGraphic;
 import com.osam2019.DreamCar.EyesON.google.FrameMetadata;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
+import com.osam2019.DreamCar.EyesON.google.VisionProcessorBase;
 
 import java.io.IOException;
 import java.util.List;
