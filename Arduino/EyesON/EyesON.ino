@@ -112,11 +112,15 @@ void loop() {
         case NOT_FOUND:
         break;
         case SLEEP_CHECK:
-          if(inputBuffer[2] == '1') {
-            alarmState = ON;
-          }
-          else if(inputBuffer[2] == '0'){
-            alarmState = OFF;
+          switch(inputBuffer[2]){
+            case '0'://normal
+            break;
+            case '1'://sleep
+              alarmState = ON;
+            break;
+            case '2'://wake up
+              alarmState = OFF;
+            break;
           }
         break;
       }
