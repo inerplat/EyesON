@@ -10,31 +10,22 @@
 
  - 사용자의 졸음을 깨우는 피드백 : 모터 및 부저를 이용해 졸고 있는 사용자에게 경고를 줍니다.
 
- - 사용자의 이용 데이터 분석 : Google Analytics를 이용해 사용자의 데이터를 분석합니다.
+ - 사용자 로그 데이터 분석 : Google Analytics를 이용해 사용자의 로그 데이터를 분석합니다.
 
-
-## 작동 이미지
-
-### 얼굴 인식 및 윤곽선 표시 / 해제 기능
-<img src ="https://github.com/inerplat/EyesON/blob/master/docs/image/contour.gif?raw=true" width="50%" />
-
-### 일반적인 눈 깜빡임 : 변화 없음
-<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/nomal-close.gif?raw=true" width="50%" />
-
-### 졸음이 감지된 눈 : 빨간색 사각형
-<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/doze-close.gif?raw=true" width="50%" />
-
-### 웃는 얼굴(알람 종료용 트리거) : 파란색 사각형
-<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/smile.gif?raw=true" width="50%" />
+    <img src="https://github.com/inerplat/EyesON/blob/write-readme/docs/image/function.jpg?raw=true">
 
 
 ## 1. 개발 목적
+
+
 
 현대 도시에서 살아가기 위해 꼭 필요한 자동차, 현재 한국에 등록된 자동차는 2천 2백만대를 넘어섰고 가구당 0.9대를 보유하고 있을 정도로 많이 그리고 자주 사용됩니다.
 
 이런 자동차에도 사고라는 위험요소가 존재하는데, 운전자가 일으킬 수 있는 대표적인 사고로 음주운전과 졸음운전을 뽑을 수 있습니다.
 음주운전은 술을 마신사람이 일으키는 사고로 최근에는 윤창호법으로 강력히 처벌을 할 수 있지만, 졸음운전은 음주운전과는 다르게 누구에게나 갑작스럽게 찾아올수 있는 위험 요소입니다.
 졸음운전을 예방하기 위해 음악을 듣거나 창문을 여는 등 여러가지 방법이 제시되고 있지만, 근본적으로 졸기 시작한 사람을 깨우기는 어려운 실태입니다.
+   
+   <img src="https://github.com/inerplat/EyesON/blob/write-readme/docs/image/introduce.jpg?raw=true">
 
 따라서 당장 운전을 하면서 졸고있는 사람을 스마트폰의 소리와 쿠션의 진동으로 깨워주는 졸음 운전 방지 솔루션을 기획하게 되었습니다.
 
@@ -96,8 +87,10 @@
 Smart Car은 공익적인 성향을 가지고있는 제품으로 단순히 상품판매만으로 수익을 창출하기에는 어려움이 있습니다.
 
 원할한 시장 경쟁력을 확보하기 위해 기능을 앱과 디바이스로 분할하여 B2C모델을 구상하였습니다.
- - 어플리케이션을 통한 광고 수익
- - 임베디드 디바이스를 통한 판매 수익
+   - 어플리케이션을 통한 광고 수익
+   - 임베디드 디바이스를 통한 판매 수익
+
+      <img src="https://github.com/inerplat/EyesON/blob/write-readme/docs/image/b2c.jpg?raw=true" />
 
 현재 시장에도 카메라로 얼굴을 인식하는 임베디드 제품이 존재하여 해당 재품과 경쟁을 하기 위해 스마트폰 앱을 무료배포할 계획입니다.
 소비자들은 별도의 임베디드 제품의 구입 없이도 Safe Car기능을 일부 이용할 수 있기 때문에 현 시장의 제품과 충분한 경쟁이 되고, 
@@ -105,3 +98,24 @@ Smart Car은 공익적인 성향을 가지고있는 제품으로 단순히 상�
 
 현재 구상한 임베디드 디바이스는 진동이 나는 쿠션으로 한정되어 있지만, 졸음을 깨울 수 있는 아이템(손목밴드 등)을 추가로 제작할 예정이며,
 이를 어플리케이션과 연동하여 이용할 수 있도록 판매할 계획입니다.
+
+ 또한 사업성장 이후 독자적인 플랫폼과 얼굴 인식 모델을 구축하면 다음과 같은 B2B모델도 고려해 볼 수 있습니다.
+   - 내비게이션 업체의 제품들과 연계하여 내비게이션 및 차량 고급화
+   - 얼굴 및 졸음 인식 API 판매 수익
+   
+      <img src="https://github.com/inerplat/EyesON/blob/write-readme/docs/image/b2b.jpg?raw=true" />
+
+
+## 5. 세부 작동 이미지
+
+### 얼굴 인식 및 윤곽선 표시 / 해제 기능
+<img src ="https://github.com/inerplat/EyesON/blob/master/docs/image/contour.gif?raw=true" width="50%" />
+
+### 일반적인 눈 깜빡임 : 변화 없음
+<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/nomal-close.gif?raw=true" width="50%" />
+
+### 졸음이 감지된 눈 : 빨간색 사각형
+<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/doze-close.gif?raw=true" width="50%" />
+
+### 웃는 얼굴(알람 종료용 트리거) : 파란색 사각형
+<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/smile.gif?raw=true" width="50%" />
