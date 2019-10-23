@@ -25,6 +25,7 @@ import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.annotation.KeepName;
+import com.google.firebase.perf.metrics.AddTrace;
 import com.osam2019.DreamCar.EyesON.google.CameraSource;
 import com.osam2019.DreamCar.EyesON.google.CameraSourcePreview;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
@@ -39,6 +40,7 @@ import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.EXTRA_DEVICE
 import static com.osam2019.DreamCar.EyesON.BluetoothChooserActivity.REQUEST_ENABLE_BT;
 import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.LeftEyeOpenProbability;
 import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.RightEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.SmileProbability;
 import static com.osam2019.DreamCar.EyesON.FaceContourGraphic.drowsinessTime;
 
 
@@ -69,7 +71,9 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public static Thread workerThread = null;
     public static InputStream inputStream = null;
     private int newConnectionFlag = 0;
+
     @Override
+    @AddTrace(name = "onCreateTrace", enabled = true)
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
@@ -111,7 +115,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     {
         Toast toast = Toast.makeText(getApplicationContext(),"", Toast.LENGTH_LONG);
         preview.stop();
-        workerThread.interrupt();
+        if(!address.equals("00:00:00:00:00:00")) workerThread.interrupt();
         switch(item.getItemId())
         {
             case R.id.CameraCheck:
@@ -140,7 +144,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
                 }
                 break;
         }
-        receiveData();
+        if(!address.equals("00:00:00:00:00:00")) receiveData();
         toast.show();
 
         return super.onOptionsItemSelected(item);
@@ -180,7 +184,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
 
                         }
                         if(substring.equals("^~")){
-                            sendData("%"+ (drowsinessTime > 600 ? "1" : "0") + "~");
+                            sendData("%"+ (SmileProbability > 0.6 ? 2 : drowsinessTime > 600 ? "1" : "0") + "~");
                         }
                     }
                 } catch (IOException e) {
@@ -296,7 +300,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
-        workerThread.interrupt();
+        if(!address.equals("00:00:00:00:00:00")) workerThread.interrupt();
         preview.stop();
         try {
             inputStream.close();
