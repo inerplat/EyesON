@@ -184,7 +184,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
 
                         }
                         if(substring.equals("^~")){
-                            sendData("%"+ (SmileProbability > 0.6 ? 2 : drowsinessTime > 600 ? "1" : "0") + "~");
+                            sendData("%"+ (SmileProbability >= 0.7 ? 2 : drowsinessTime > 600 ? "1" : "0") + "~");
                         }
                     }
                 } catch (IOException e) {

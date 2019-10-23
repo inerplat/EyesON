@@ -118,7 +118,9 @@ public class FaceContourGraphic extends Graphic {
     float bottom = y + yOffset;
 
     boxPaint = new Paint();
-    if(drowsinessTime >= 600)
+    if(SmileProbability >=0.6)
+      boxPaint.setColor(Color.BLUE);
+    else if(drowsinessTime >= 600)
       boxPaint.setColor(Color.RED);
     else
       boxPaint.setColor(Color.WHITE);
