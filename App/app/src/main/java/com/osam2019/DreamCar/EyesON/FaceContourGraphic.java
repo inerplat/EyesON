@@ -10,6 +10,7 @@ import android.util.Pair;
 import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
+import com.google.firebase.perf.metrics.AddTrace;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay.Graphic;
 
@@ -32,6 +33,7 @@ public class FaceContourGraphic extends Graphic {
   private volatile FirebaseVisionFace firebaseVisionFace;
   public static float LeftEyeOpenProbability = (float) 0.0;
   public static float RightEyeOpenProbability = (float) 0.0;
+  public static float SmileProbability = (float) 0.0;
   public static int drowsinessTime = 0;
   public static long prevTime=0, nowTime=0;
   public class ContourVar{
@@ -98,6 +100,7 @@ public class FaceContourGraphic extends Graphic {
 
   @SuppressLint("DefaultLocale")
   @Override
+  @AddTrace(name = "onDrawTrace", enabled = true)
   public void draw(Canvas canvas) {
     prevTime = nowTime;
     FirebaseVisionFace face = firebaseVisionFace;
@@ -130,8 +133,17 @@ public class FaceContourGraphic extends Graphic {
 
     LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
     RightEyeOpenProbability = face.getRightEyeOpenProbability();
+    SmileProbability = face.getSmilingProbability();
     LeftEyeOpenProbability = LeftEyeOpenProbability < 0 ? -2 : LeftEyeOpenProbability;
     RightEyeOpenProbability = RightEyeOpenProbability < 0 ? -2 : RightEyeOpenProbability;
+
+    if (SmileProbability >= 0) {
+      canvas.drawText(
+              "happiness: " + String.format("%.2f", SmileProbability),
+              x + ID_X_OFFSET * 3,
+              y - ID_Y_OFFSET,
+              idPaint);
+    }
 
     if (LeftEyeOpenProbability >= 0) {
       canvas.drawText(
@@ -148,7 +160,7 @@ public class FaceContourGraphic extends Graphic {
               idPaint);
     }
     nowTime = System.currentTimeMillis();
-    if(LeftEyeOpenProbability >= 0.5 && RightEyeOpenProbability >= 0.5)
+    if(LeftEyeOpenProbability >= 0.5 || RightEyeOpenProbability >= 0.5)
       drowsinessTime = 0;
     else
       drowsinessTime += nowTime-prevTime;
