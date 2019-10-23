@@ -13,6 +13,7 @@
 #define buzzerDelay 100//ms
 #define stepDelay 3//ms
 #define servoDelay 1000//ms
+#define bluetoothDelay 10000//ms
 
 SoftwareSerial bluetooth(10, 11);//RX,TX
 
@@ -36,6 +37,7 @@ enum alarmstate{OFF = '0', ON = '1'}alarmState = OFF;
 volatile int timer0Count = 0;
 const int stepmoterPin[4] = {4,5,6,7} ;
 unsigned char stepmoterPinState = 0x77;
+volatile int waitBluetooth = 0;
 
 int delayLCM = 0x7fffffff;
 
@@ -68,7 +70,6 @@ void stepMove(){
 
 void bluetoothConnection(){//bluetooth connection successful
   while(!bluetooth.available());
-  bluetooth.read();
 }
 
 void sendData(String data){//output buffer setting
@@ -124,10 +125,12 @@ void loop() {
     switch(arduinoState){
     case SENDING://arduino->phone
       bluetoothSend();
+      waitBluetooth = 0;
       arduinoState = WAITING;
      break;
     case WAITING://arduino<-phone
       bluetoothReceive();
+      waitBluetooth = -1;
       arduinoState = PROCESSING;
     break;
     case PROCESSING:
@@ -160,6 +163,13 @@ void loop() {
 
 ISR(TIMER0_COMPA_vect){
   TCNT0 = 0;
+  if(waitBluetooth >= 0){
+    waitBluetooth++;
+  }
+  if(waitBluetooth >= bluetoothDelay){
+    waitBluetooth = -1;
+    sendData((String)SLEEP_STATE_REQUEST);
+  }
   if(alarmState == ON){
     if(timer0Count % buzzerDelay == 0){
       digitalWrite(buzzerPin, !digitalRead(buzzerPin));
