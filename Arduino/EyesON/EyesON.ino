@@ -69,7 +69,14 @@ void stepMove(){
 }
 
 void bluetoothConnection(){//bluetooth connection successful
-  while(!bluetooth.available());
+  while(true){
+    bluetoothReceive();
+    if(inputBuffer[1] == CONNECTION){
+      sendData((String)CONNECTION);
+      bluetoothSend();
+      return;
+    }
+  }
 }
 
 void sendData(String data){//output buffer setting
@@ -170,6 +177,7 @@ ISR(TIMER0_COMPA_vect){
     waitBluetooth = -1;
     sendData((String)SLEEP_STATE_REQUEST);
   }
+  
   if(alarmState == ON){
     if(timer0Count % buzzerDelay == 0){
       digitalWrite(buzzerPin, !digitalRead(buzzerPin));
