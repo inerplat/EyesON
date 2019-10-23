@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.util.Pair;
 
 
@@ -16,6 +17,10 @@ import com.osam2019.DreamCar.EyesON.google.GraphicOverlay.Graphic;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.LeftEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.RightEyeOpenProbability;
+import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.SmileProbability;
 
 
 public class FaceContourGraphic extends Graphic {
@@ -31,9 +36,7 @@ public class FaceContourGraphic extends Graphic {
   private Paint boxPaint;
 
   private volatile FirebaseVisionFace firebaseVisionFace;
-  public static float LeftEyeOpenProbability = (float) 0.0;
-  public static float RightEyeOpenProbability = (float) 0.0;
-  public static float SmileProbability = (float) 0.0;
+
   public static int drowsinessTime = 0;
   public static long prevTime=0, nowTime=0;
   public class ContourVar{
@@ -118,7 +121,9 @@ public class FaceContourGraphic extends Graphic {
     float bottom = y + yOffset;
 
     boxPaint = new Paint();
-    if(drowsinessTime >= 600)
+    if(SmileProbability >=0.6)
+      boxPaint.setColor(Color.BLUE);
+    else if(drowsinessTime >= 600)
       boxPaint.setColor(Color.RED);
     else
       boxPaint.setColor(Color.WHITE);
@@ -131,12 +136,8 @@ public class FaceContourGraphic extends Graphic {
     drawCanvas(canvas, contourList);
 
 
-    LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
-    RightEyeOpenProbability = face.getRightEyeOpenProbability();
     SmileProbability = face.getSmilingProbability();
-    LeftEyeOpenProbability = LeftEyeOpenProbability < 0 ? -2 : LeftEyeOpenProbability;
-    RightEyeOpenProbability = RightEyeOpenProbability < 0 ? -2 : RightEyeOpenProbability;
-
+    Log.d("OpenProbability", "LeftEyeOpenProbability : " + String.format("%f ", LeftEyeOpenProbability) + "RightEyeOpenProbability : "+ String.format("%f", RightEyeOpenProbability));
     if (SmileProbability >= 0) {
       canvas.drawText(
               "happiness: " + String.format("%.2f", SmileProbability),

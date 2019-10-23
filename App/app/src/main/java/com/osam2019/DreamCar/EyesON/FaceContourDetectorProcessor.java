@@ -16,19 +16,25 @@ import com.osam2019.DreamCar.EyesON.google.CameraImageGraphic;
 import com.osam2019.DreamCar.EyesON.google.FrameMetadata;
 import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
 import com.osam2019.DreamCar.EyesON.google.VisionProcessorBase;
-
+import com.osam2019.DreamCar.EyesON.FaceContourGraphic;
 import java.io.IOException;
 import java.util.List;
 
 /**
  * Face Contour Demo.
  */
+
+
+
 public class FaceContourDetectorProcessor extends VisionProcessorBase<List<FirebaseVisionFace>> {
 
     private static final String TAG = "FaceContourDetectorProc";
 
     private final FirebaseVisionFaceDetector detector;
     public static int status = 0;
+    public static float LeftEyeOpenProbability = (float) 0.0;
+    public static float RightEyeOpenProbability = (float) 0.0;
+    public static float SmileProbability = (float) 0.0;
     public FaceContourDetectorProcessor(String mode) {
         FirebaseVisionFaceDetectorOptions options = null;
         if(mode.equals("Contour")) {
@@ -78,8 +84,14 @@ public class FaceContourDetectorProcessor extends VisionProcessorBase<List<Fireb
         }
         for (int i = 0; i < faces.size(); ++i) {
             FirebaseVisionFace face = faces.get(i);
+            LeftEyeOpenProbability = face.getLeftEyeOpenProbability();
+            RightEyeOpenProbability = face.getRightEyeOpenProbability();
+            LeftEyeOpenProbability = LeftEyeOpenProbability < 0 ? -2 : LeftEyeOpenProbability;
+            RightEyeOpenProbability = RightEyeOpenProbability < 0 ? -2 : RightEyeOpenProbability;
+
             FaceContourGraphic faceGraphic = new FaceContourGraphic(graphicOverlay, face);
             graphicOverlay.add(faceGraphic);
+            break;
         }
         graphicOverlay.postInvalidate();
     }
