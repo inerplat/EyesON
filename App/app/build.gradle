@@ -35,7 +35,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-ml-vision-face-model:19.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.google.firebase:firebase-ml-model-interpreter:22.0.0'
-    implementation 'com.google.firebase:firebase-perf:18.0.1'
+    implementation 'com.google.firebase:firebase-perf:19.0.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
