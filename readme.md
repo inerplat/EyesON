@@ -130,13 +130,13 @@ Eyes ON은 공익적인 성향을 가지고있는 제품으로 단순히 상품�
 ## 5. 세부 작동 이미지
 
 ### 얼굴 인식 및 윤곽선 표시 / 해제 기능
-<img src ="https://github.com/inerplat/EyesON/blob/master/docs/image/contour.gif?raw=true" width="50%" />
+<img src ="https://github.com/inerplat/EyesON/blob/master/docs/image/contour.gif?raw=true" />
 
 ### 일반적인 눈 깜빡임 : 변화 없음
-<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/nomal-close.gif?raw=true" width="50%" />
+<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/nomal-close.gif?raw=true" />
 
 ### 졸음이 감지된 눈 : 빨간색 사각형
-<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/doze-close.gif?raw=true" width="50%" />
+<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/doze-close.gif?raw=true"/>
 
 ### 웃는 얼굴(알람 종료용 트리거) : 파란색 사각형
-<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/smile.gif?raw=true" width="50%" />
+<img src = "https://github.com/inerplat/EyesON/blob/master/docs/image/smile.gif?raw=true" />
