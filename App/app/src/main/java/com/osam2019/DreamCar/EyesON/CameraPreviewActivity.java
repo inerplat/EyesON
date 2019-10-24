@@ -59,7 +59,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
     private CameraSource cameraSource;
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
-    private String selectedModel = FACE_CONTOUR;
+    private String selectedModel = FACE_DETECTION;
     String address = null;
 
     private ProgressDialog progressDialog;
@@ -183,7 +183,6 @@ public final class CameraPreviewActivity extends AppCompatActivity
                         while(str.length() >= 2){
                             String subString = str.substring(0, 2);
                             if(subString.equals("!~")) {
-
                                 sendData("@" + String.format("%.2f", LeftEyeOpenProbability).replace(".", "") + String.format("%.2f", RightEyeOpenProbability).replace(".", "") + "~");
                             }
                             else if (subString.equals("^~")) {
@@ -309,10 +308,11 @@ public final class CameraPreviewActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(workerThread.isAlive()) workerThread.interrupt();
+        if(workerThread!=null && workerThread.isAlive()) workerThread.interrupt();
         preview.stop();
         try {
-            inputStream.close();
+            if(inputStream!=null)
+                inputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
