@@ -16,7 +16,7 @@
 #define stepDelay 4//ms
 #define servoDelay 1000//ms
 #define bluetoothDelay 1000//ms
-#define alarmResetDelay 100
+#define alarmResetDelay 50
 
 SoftwareSerial bluetooth(2, 3);//RX,TX
 
@@ -41,6 +41,7 @@ unsigned char stepmoterPinState = 0x77;
 volatile int waitBluetooth = 0;
 
 int servoMovingTime = -1;
+int servoState = 0;
 int notFoundCnt = 0;
 
 int delayLCM = 0x7fffffff;
@@ -154,8 +155,8 @@ void setup() {
   
   servo.attach(servoPin);
   servo.write(servoLeftAngle);
-  delay(100);
-  servo.detach();
+  servoMovingTime = timer0Count;
+  servoState = 1;
 }
 
 void loop() {
@@ -177,7 +178,6 @@ void loop() {
             notFoundCnt++;
             if(notFoundCnt > alarmResetDelay){
               alarmState = OFF;
-              notFoundCnt = 0;
             }
           }
         break;
@@ -211,10 +211,11 @@ ISR(TIMER0_COMPA_vect){
     Serial.println("reconnect");
   }
   
-  if(servoMovingTime >= 0 && timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100){ 
+  if(servoState != 0 && timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100){ 
     servo.detach();
-    servoMovingTime = -1;
+    servoState = 0;
   }
+  
   if(alarmState == ON){
     if(timer0Count % buzzerDelay == 0){
       digitalWrite(buzzerPin, !digitalRead(buzzerPin));
@@ -226,19 +227,21 @@ ISR(TIMER0_COMPA_vect){
       servo.attach(servoPin);
       servo.write(servoLeftAngle);
       servoMovingTime = timer0Count;
+      servoState = 1;
     }
     if(timer0Count % servoDelay == 0){
       servo.attach(servoPin);
       servo.write(servoRightAngle);
       servoMovingTime = timer0Count;
+      servoState = 1;
     }
   }
   else{
     digitalWrite(buzzerPin, LOW);
-    if(servoMovingTime != -1){
-      servo.attach(servoPin);
+    if(servoState == 1){
       servo.write(servoLeftAngle);
       servoMovingTime = timer0Count;
+    servoState = 2;
     }
   }
   if(timer0Count % delayLCM == 0){
