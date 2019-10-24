@@ -12,7 +12,6 @@
 
 [![GitHub project](https://img.shields.io/badge/Project-Khanban-ff509f?style=for-the-badge)](https://github.com/inerplat/EyesON/projects/1)
 
-
 사용자의 얼굴을 분석해 졸음 여부를 파악하고, 임베디드 단말기와 연결하여 경고를 주는 솔루션 입니다.
 
  - 얼굴 인식을 통한 졸음 감지 : 학습된 인공지능 모델을 이용해 사용자의 눈을 파악해 졸음 패턴을 분석합니다.
@@ -21,7 +20,14 @@
 
  - 사용자 로그 데이터 분석 : Google Analytics를 이용해 사용자의 로그 데이터를 분석합니다.
 
-    <img src="https://github.com/inerplat/EyesON/blob/master/docs/image/function.jpg?raw=true">
+
+## 작동 모습
+
+   <img src="https://github.com/inerplat/EyesON/blob/master/docs/image/run.gif?raw=true">
+
+- 눈이 감기는 패턴을 분석해 졸음 여부를 감지합니다.
+- 졸음이 감지되면 잠을 깨우는 장치들이 작동합니다.
+- 사용자의 웃는 얼굴이 확인되면 장치들의 동작이 정지합니다.
 
 
 ## 1. 개발 목적
