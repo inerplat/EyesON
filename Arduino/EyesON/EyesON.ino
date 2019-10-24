@@ -1,3 +1,4 @@
+//#define DEBUG_MODE
 #include <SoftwareSerial.h>
 #include <Servo.h>
 
@@ -26,11 +27,6 @@ char outputBuffer[100];
 char inputBuffer[100];
 int outputBufferIdx = 0;
 int inputBufferIdx = 0;
-
-float leftEye = 0, rightEye = 0;
-float leftEyeWeightedAvg = 0.5, rightEyeWeightedAvg = 0.5;
-const float lastDataWeight = 0.2;
-const float avgRefVal = 0.5;
 
 enum arduinostate{READY, SENDING, WAITING, PROCESSING, WARNING}arduinoState = READY;
 enum alarmstate{OFF = '0', ON = '1'}alarmState = OFF;
@@ -115,8 +111,10 @@ void bluetoothReceive(){
   }while(inputBuffer[inputBufferIdx++] != END_OF_DATA);
   
   inputBuffer[inputBufferIdx] = '\0';
+#ifdef DEBUG_MODE
   Serial.print("receive : ");
   Serial.println((String)inputBuffer);
+#endif
 }
 
 void bluetoothSend(){
@@ -131,13 +129,17 @@ void bluetoothSend(){
     bluetooth.write(outputBuffer[outputBufferIdx]);
   }
   bluetooth.write(END_OF_DATA);
+#ifdef DEBUG_MODE
   Serial.print("send : ");
   Serial.println((String)outputBuffer);
+#endif
 }
 
 void setup() {
   bluetooth.begin(9600);
+#ifdef DEBUG_MODE
   Serial.begin(9600);
+#endif
   pinMode(buzzerPin, OUTPUT);
   for(int i = 0;i < 4;i++)
     pinMode(stepmoterPin[i], OUTPUT);
@@ -150,13 +152,13 @@ void setup() {
   
   delayLCM = getLCM(buzzerDelay,getLCM(stepDelay, servoDelay));
   
-  bluetoothConnection();
-  sendData((String)SLEEP_STATE_REQUEST);
-  
   servo.attach(servoPin);
   servo.write(servoLeftAngle);
   servoMovingTime = timer0Count;
   servoState = 1;
+  
+  bluetoothConnection();
+  sendData((String)SLEEP_STATE_REQUEST);
 }
 
 void loop() {
@@ -207,8 +209,11 @@ ISR(TIMER0_COMPA_vect){
   }
   if(waitBluetooth >= bluetoothDelay){
     waitBluetooth = -1;
+    alarmState = OFF;
     arduinoState = SENDING;
+#ifdef DEBUG_MODE
     Serial.println("reconnect");
+#endif
   }
   
   if(servoState != 0 && timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100){ 
