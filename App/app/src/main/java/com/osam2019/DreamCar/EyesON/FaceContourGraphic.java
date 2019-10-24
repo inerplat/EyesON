@@ -5,8 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
-import android.util.Pair;
-
 
 import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
@@ -25,7 +23,6 @@ import static com.osam2019.DreamCar.EyesON.FaceContourDetectorProcessor.SmilePro
 
 public class FaceContourGraphic extends Graphic {
 
-  private static final float FACE_POSITION_RADIUS = 3.0f;
   private static final float ID_TEXT_SIZE = 30.0f;
   private static final float ID_Y_OFFSET = 80.0f;
   private static final float ID_X_OFFSET = -70.0f;
@@ -33,18 +30,16 @@ public class FaceContourGraphic extends Graphic {
 
   private final Paint facePositionPaint;
   private final Paint idPaint;
-  private Paint boxPaint;
 
   private volatile FirebaseVisionFace firebaseVisionFace;
 
-  public static int drowsinessTime = 0;
-  public static long prevTime=0, nowTime=0;
+  static int drowsinessTime = 0;
+  private static long nowTime=0;
   public class ContourVar{
-    public FirebaseVisionFaceContour vContour;
-    public int color;
-    public float lineWidth;
-    public float circleRadius;
-    ContourVar(){}
+    FirebaseVisionFaceContour vContour;
+    int color;
+    float lineWidth;
+    float circleRadius;
     ContourVar(FirebaseVisionFaceContour vContour, int color, float lineWidth, float circleRadius){
       this.vContour=vContour;
       this.color = color;
@@ -55,7 +50,7 @@ public class FaceContourGraphic extends Graphic {
 
   private static List<ContourVar> contourList;
 
-  public FaceContourGraphic(GraphicOverlay overlay, FirebaseVisionFace face) {
+  FaceContourGraphic(GraphicOverlay overlay, FirebaseVisionFace face) {
     super(overlay);
 
     this.firebaseVisionFace = face;
@@ -83,7 +78,7 @@ public class FaceContourGraphic extends Graphic {
 
 
   }
-  public void drawCanvas(Canvas canvas, List<ContourVar> contourList){
+  private void drawCanvas(Canvas canvas, List<ContourVar> contourList){
     for(ContourVar contour : contourList) {
       for (int i = 1; i < contour.vContour.getPoints().size(); i++) {
         FirebaseVisionPoint point = contour.vContour.getPoints().get(i);
@@ -103,9 +98,9 @@ public class FaceContourGraphic extends Graphic {
 
   @SuppressLint("DefaultLocale")
   @Override
-  @AddTrace(name = "onDrawTrace", enabled = true)
+  @AddTrace(name = "onDrawTrace")
   public void draw(Canvas canvas) {
-    prevTime = nowTime;
+    long prevTime = nowTime;
     FirebaseVisionFace face = firebaseVisionFace;
     if (face == null) {
       return;
@@ -120,7 +115,7 @@ public class FaceContourGraphic extends Graphic {
     float right = x + xOffset;
     float bottom = y + yOffset;
 
-    boxPaint = new Paint();
+    Paint boxPaint = new Paint();
     if(SmileProbability >=0.6)
       boxPaint.setColor(Color.BLUE);
     else if(drowsinessTime >= 600)
@@ -164,6 +159,6 @@ public class FaceContourGraphic extends Graphic {
     if(LeftEyeOpenProbability >= 0.5 || RightEyeOpenProbability >= 0.5)
       drowsinessTime = 0;
     else
-      drowsinessTime += nowTime-prevTime;
+      drowsinessTime += nowTime- prevTime;
   }
 }

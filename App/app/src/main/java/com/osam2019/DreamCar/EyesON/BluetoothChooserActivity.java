@@ -10,7 +10,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -33,13 +32,12 @@ public class BluetoothChooserActivity extends AppCompatActivity {
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
 
     private BluetoothAdapter mBluetoothAdapter;
-    private Set<BluetoothDevice> pairedDevices;
 
     public static final int REQUEST_ENABLE_BT = 1;
     public static final int REQUEST_ENABLE_FINE_LOCATION = 1256;
     private static final int PERMISSION_REQUESTS = 1;
     private BluetoothDevicesAdapter DeviceAdapter;
-    private ArrayList<String> DeviceActivityNamesList = new ArrayList<String>();
+    private ArrayList<String> DeviceActivityNamesList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,20 +54,18 @@ public class BluetoothChooserActivity extends AppCompatActivity {
         } else if (!mBluetoothAdapter.isEnabled()) {
             Intent enableIntentBluetooth = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntentBluetooth, REQUEST_ENABLE_BT);
-        } else if (mBluetoothAdapter.isEnabled()) {
+        } else {
+            mBluetoothAdapter.isEnabled();
             PairedDevicesList();
         }
 
         setBroadCastReceiver();
 
-        searchForNewDevices.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchForNewDevices.setEnabled(false);
-                DeviceAdapter.clear();
-                PairedDevicesList();
-                NewDevicesList();
-            }
+        searchForNewDevices.setOnClickListener(v -> {
+            searchForNewDevices.setEnabled(false);
+            DeviceAdapter.clear();
+            PairedDevicesList();
+            NewDevicesList();
         });
         if (!allPermissionsGranted()) {
             getRuntimePermissions();
@@ -123,12 +119,10 @@ public class BluetoothChooserActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_ENABLE_FINE_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                } else {
-                    Toast.makeText(this, "Access Location must be allowed for bluetooth Search", Toast.LENGTH_LONG).show();
-                }
+        if (requestCode == REQUEST_ENABLE_FINE_LOCATION) {
+            if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Access Location must be allowed for bluetooth Search", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -145,8 +139,8 @@ public class BluetoothChooserActivity extends AppCompatActivity {
     }
 
     private void initializeScreen() {
-        searchForNewDevices = (FloatingActionButton) findViewById(R.id.search_fab_button);
-        DevicesList = (ListView) findViewById(R.id.devices_list_listView);
+        searchForNewDevices = findViewById(R.id.search_fab_button);
+        DevicesList = findViewById(R.id.devices_list_listView);
     }
 
     private void setBroadCastReceiver() {
@@ -170,6 +164,7 @@ public class BluetoothChooserActivity extends AppCompatActivity {
 
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                assert device != null;
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
 
                     DeviceAdapter.add(device.getName() + "\n" + device.getAddress());
@@ -182,7 +177,7 @@ public class BluetoothChooserActivity extends AppCompatActivity {
     };
 
     private void PairedDevicesList() {
-        pairedDevices = mBluetoothAdapter.getBondedDevices();
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         DeviceAdapter.add("Continue without pairing\n"+"00:00:00:00:00:00");
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice bt : pairedDevices) {
@@ -197,16 +192,13 @@ public class BluetoothChooserActivity extends AppCompatActivity {
         DevicesList.setOnItemClickListener(bluetoothListClickListener);
     }
 
-    private AdapterView.OnItemClickListener bluetoothListClickListener = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            String info = (String) parent.getItemAtPosition(position);
-            String MACAddress = info.substring(info.length() - 17);
-            Log.d("CLICK", info+" | "+MACAddress);
-            Intent intent = new Intent(BluetoothChooserActivity.this, CameraPreviewActivity.class);
-            intent.putExtra(EXTRA_DEVICE_ADDRESS, MACAddress);
-            startActivity(intent);
-        }
+    private AdapterView.OnItemClickListener bluetoothListClickListener = (parent, view, position, id) -> {
+        String info = (String) parent.getItemAtPosition(position);
+        String MACAddress = info.substring(info.length() - 17);
+        Log.d("CLICK", info+" | "+MACAddress);
+        Intent intent = new Intent(BluetoothChooserActivity.this, CameraPreviewActivity.class);
+        intent.putExtra(EXTRA_DEVICE_ADDRESS, MACAddress);
+        startActivity(intent);
     };
 
     @Override

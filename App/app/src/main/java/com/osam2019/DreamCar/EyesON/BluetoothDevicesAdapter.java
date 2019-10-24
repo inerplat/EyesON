@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class BluetoothDevicesAdapter extends ArrayAdapter<String> {
 
 
-    public BluetoothDevicesAdapter(@NonNull Context context, ArrayList<String> devices) {
+    BluetoothDevicesAdapter(@NonNull Context context, ArrayList<String> devices) {
         super(context, 0, devices);
     }
 
@@ -32,7 +32,7 @@ public class BluetoothDevicesAdapter extends ArrayAdapter<String> {
         }
 
         ViewHolder holder = new ViewHolder();
-        holder.deviceName = (TextView) convertView.findViewById(R.id.device_name_textView);
+        holder.deviceName = convertView.findViewById(R.id.device_name_textView);
         convertView.setTag(holder);
 
 
