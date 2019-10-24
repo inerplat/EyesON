@@ -16,13 +16,14 @@
 #define stepDelay 4//ms
 #define servoDelay 1000//ms
 #define bluetoothDelay 1000//ms
+#define alarmResetDelay 100
 
 SoftwareSerial bluetooth(2, 3);//RX,TX
 
 Servo servo;
 
 char outputBuffer[100];
-char inputBuffer[100] = {1,};
+char inputBuffer[100];
 int outputBufferIdx = 0;
 int inputBufferIdx = 0;
 
@@ -40,6 +41,7 @@ unsigned char stepmoterPinState = 0x77;
 volatile int waitBluetooth = 0;
 
 int servoMovingTime = -1;
+int notFoundCnt = 0;
 
 int delayLCM = 0x7fffffff;
 
@@ -83,7 +85,7 @@ void stepMove(){
 void bluetoothConnection(){//bluetooth connection successful
   while(true){
     bluetoothReceive();
-    if(inputBuffer[1] == CONNECTION){
+    if(inputBuffer[0] == CONNECTION){
       sendData((String)CONNECTION);
       bluetoothSend();
       return;
@@ -101,18 +103,19 @@ void sendData(String data){//output buffer setting
 }
 
 void bluetoothReceive(){
-  inputBufferIdx = 1;
-  while(inputBuffer[inputBufferIdx - 1] != END_OF_DATA){
+  inputBufferIdx = 0;
+  do{
     while(!bluetooth.available());
     inputBuffer[inputBufferIdx] = bluetooth.read();
-    if(charCheck(inputBuffer[inputBufferIdx++]) == 0){
+    if(charCheck(inputBuffer[inputBufferIdx]) == 0){
       arduinoState = SENDING;
       return;
     }
-  }
+  }while(inputBuffer[inputBufferIdx++] != END_OF_DATA);
+  
   inputBuffer[inputBufferIdx] = '\0';
   Serial.print("receive : ");
-  Serial.println((String)(inputBuffer + 1));
+  Serial.println((String)inputBuffer);
 }
 
 void bluetoothSend(){
@@ -163,29 +166,28 @@ void loop() {
      break;
     case WAITING://arduino<-phone
       bluetoothReceive();
-      waitBluetooth = -1;
       arduinoState = PROCESSING;
     break;
     case PROCESSING:
-      switch(inputBuffer[1]){
+      switch(inputBuffer[0]){
         case EYES_DATA:
-/*          rightEye = ((String)inputBuffer).substring(2,5).toFloat()/100;
-          leftEye = ((String)inputBuffer).substring(5,8).toFloat()/100;
-          if(rightEye < rightEyeWeightedAvg * avgRefVal || leftEye < leftEyeWeightedAvg * avgRefVal){
-          }
-          else{
-            rightEyeWeightedAvg = rightEye * lastDataWeight + rightEyeWeightedAvg * (1 - lastDataWeight);
-            leftEyeWeightedAvg = leftEye * lastDataWeight + leftEyeWeightedAvg * (1 - lastDataWeight);
-          }*/
         break;
         case NOT_FOUND:
+          if(alarmState == ON){
+            notFoundCnt++;
+            if(notFoundCnt > alarmResetDelay){
+              alarmState = OFF;
+              notFoundCnt = 0;
+            }
+          }
         break;
         case SLEEP_CHECK:
-          switch(inputBuffer[2]){
+          switch(inputBuffer[1]){
             case '0'://normal
             break;
             case '1'://sleep
               alarmState = ON;
+              notFoundCnt = 0;
             break;
             case '2'://wake up
               alarmState = OFF;
@@ -209,7 +211,7 @@ ISR(TIMER0_COMPA_vect){
     Serial.println("reconnect");
   }
   
-  if(timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100){ 
+  if(servoMovingTime >= 0 && timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100){ 
     servo.detach();
     servoMovingTime = -1;
   }
