@@ -301,17 +301,21 @@ public final class CameraPreviewActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(workerThread.isAlive()) workerThread.interrupt();
+        if(workerThread!=null &&  workerThread.isAlive()) {
+            workerThread.interrupt();
+            Disconnect();
+        }
         preview.stop();
-        try {
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(inputStream!=null) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if (cameraSource != null) {
             cameraSource.release();
         }
-        Disconnect();
     }
 
     private String[] getRequiredPermissions() {
