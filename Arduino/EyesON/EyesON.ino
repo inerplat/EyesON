@@ -9,7 +9,7 @@
 #define END_OF_DATA '~'
 #define SLEEP_CHECK '%'
 #define SLEEP_STATE_REQUEST '^'
-#define buzzerPin 11
+#define buzzerPin 13//11
 #define servoPin 9
 #define servoLeftAngle 150
 #define servoRightAngle 50
@@ -17,7 +17,7 @@
 #define stepDelay 4//ms
 #define servoDelay 1000//ms
 #define bluetoothDelay 1000//ms
-#define alarmResetDelay 50
+#define alarmResetDelay 20
 
 SoftwareSerial bluetooth(2, 3);//RX,TX
 
@@ -37,7 +37,7 @@ unsigned char stepmoterPinState = 0x77;
 volatile int waitBluetooth = 0;
 
 int servoMovingTime = -1;
-int servoState = 0;
+enum servostate{STOP, MOVE, RESET}servoState = STOP;
 int notFoundCnt = 0;
 
 int delayLCM = 0x7fffffff;
@@ -84,7 +84,6 @@ void bluetoothConnection(){//bluetooth connection successful
     bluetoothReceive();
     if(inputBuffer[0] == CONNECTION){
       sendData((String)CONNECTION);
-      bluetoothSend();
       return;
     }
   }
@@ -101,15 +100,18 @@ void sendData(String data){//output buffer setting
 
 void bluetoothReceive(){
   inputBufferIdx = 0;
+  waitBluetooth = 0;
   do{
     while(!bluetooth.available());
     inputBuffer[inputBufferIdx] = bluetooth.read();
     if(charCheck(inputBuffer[inputBufferIdx]) == 0){
+      while(bluetooth.available()){
+        bluetooth.read();
+      }
       arduinoState = SENDING;
       return;
     }
   }while(inputBuffer[inputBufferIdx++] != END_OF_DATA);
-  
   inputBuffer[inputBufferIdx] = '\0';
 #ifdef DEBUG_MODE
   Serial.print("receive : ");
@@ -122,13 +124,33 @@ void bluetoothSend(){
     waitBluetooth = -2;
   }
   else if(waitBluetooth == -2){
+    switch(outputBuffer[0]){
+      case CONNECTION:
+        arduinoState = PROCESSING;
+      break;
+      case SLEEP_STATE_REQUEST:
+        arduinoState = WAITING;
+      break;
+    }
     return;
   }
-  waitBluetooth = 0;
+  else {
+    waitBluetooth = 0;
+  }
+  
   for(outputBufferIdx = 0; outputBuffer[outputBufferIdx] != END_OF_DATA; outputBufferIdx++){
     bluetooth.write(outputBuffer[outputBufferIdx]);
   }
   bluetooth.write(END_OF_DATA);
+
+  switch(outputBuffer[0]){
+    case CONNECTION:
+      arduinoState = PROCESSING;
+    break;
+    case SLEEP_STATE_REQUEST:
+      arduinoState = WAITING;
+    break;
+  }
 #ifdef DEBUG_MODE
   Serial.print("send : ");
   Serial.println((String)outputBuffer);
@@ -155,17 +177,30 @@ void setup() {
   servo.attach(servoPin);
   servo.write(servoLeftAngle);
   servoMovingTime = timer0Count;
-  servoState = 1;
+  servoState = MOVE;
   
   bluetoothConnection();
   sendData((String)SLEEP_STATE_REQUEST);
 }
 
 void loop() {
+#ifdef DEBUG_MODE
+  Serial.print("arduino State : ");
+  switch(arduinoState){
+    case SENDING:
+      Serial.println("SENDING");
+    break;
+    case WAITING:
+      Serial.println("WAITING");
+    break;     
+    case PROCESSING:
+      Serial.println("PROCESSING");
+    break;
+  }
+#endif
     switch(arduinoState){
     case SENDING://arduino->phone
       bluetoothSend();
-      arduinoState = WAITING;
      break;
     case WAITING://arduino<-phone
       bluetoothReceive();
@@ -216,9 +251,11 @@ ISR(TIMER0_COMPA_vect){
 #endif
   }
   
-  if(servoState != 0 && timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100){ 
+  if(servoState != STOP && (timer0Count - servoMovingTime == 100 || timer0Count + delayLCM - servoMovingTime == 100)){
     servo.detach();
-    servoState = 0;
+    if(servoState == MOVE){
+      servoState = STOP;
+    }
   }
   
   if(alarmState == ON){
@@ -232,21 +269,21 @@ ISR(TIMER0_COMPA_vect){
       servo.attach(servoPin);
       servo.write(servoLeftAngle);
       servoMovingTime = timer0Count;
-      servoState = 1;
+      servoState = MOVE;
     }
     if(timer0Count % servoDelay == 0){
       servo.attach(servoPin);
       servo.write(servoRightAngle);
       servoMovingTime = timer0Count;
-      servoState = 1;
+      servoState = MOVE;
     }
   }
   else{
     digitalWrite(buzzerPin, LOW);
-    if(servoState == 1){
+    if(servoState != RESET){
       servo.write(servoLeftAngle);
       servoMovingTime = timer0Count;
-    servoState = 2;
+      servoState = RESET;
     }
   }
   if(timer0Count % delayLCM == 0){
