@@ -9,7 +9,7 @@
 #define END_OF_DATA '~'
 #define SLEEP_CHECK '%'
 #define SLEEP_STATE_REQUEST '^'
-#define buzzerPin 13//11
+#define buzzerPin 11
 #define servoPin 9
 #define servoLeftAngle 150
 #define servoRightAngle 50
