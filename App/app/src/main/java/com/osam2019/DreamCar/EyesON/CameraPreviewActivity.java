@@ -158,11 +158,11 @@ public final class CameraPreviewActivity extends AppCompatActivity
 
     private void sendData(String data) {
         Log.d("bluetoothData", "send : "+data);
-        if (btSocket != null) {
+        if (btSocket != null && workerThread!=null && workerThread.isAlive()) {
             try {
                 btSocket.getOutputStream().write(data.getBytes());
             } catch (IOException e) {
-                makeToast("Error");
+                Log.d(TAG, "Toast Error");
             }
         }
     }
