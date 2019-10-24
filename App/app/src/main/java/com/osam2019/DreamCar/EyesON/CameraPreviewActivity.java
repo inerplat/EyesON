@@ -1,5 +1,6 @@
 package com.osam2019.DreamCar.EyesON;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -32,6 +33,7 @@ import com.osam2019.DreamCar.EyesON.google.GraphicOverlay;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -54,10 +56,10 @@ public final class CameraPreviewActivity extends AppCompatActivity
     private static final String TAG = "LivePreviewActivity";
     private static final int PERMISSION_REQUESTS = 1;
 
-    private CameraSource cameraSource = null;
+    private CameraSource cameraSource;
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
-    private String selectedModel = FACE_CONTOUR;
+    private String selectedModel = FACE_DETECTION;
     String address = null;
 
     private ProgressDialog progressDialog;
@@ -72,8 +74,12 @@ public final class CameraPreviewActivity extends AppCompatActivity
     public static InputStream inputStream = null;
     private int newConnectionFlag = 0;
 
+    public CameraPreviewActivity() {
+        cameraSource = null;
+    }
+
     @Override
-    @AddTrace(name = "onCreateTrace", enabled = true)
+    @AddTrace(name = "onCreateTrace")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
@@ -121,7 +127,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
             case R.id.CameraCheck:
                 Log.d(TAG, "Set facing");
                 if (cameraSource != null) {
-                    if (cameraSource.getCameraFacing() == cameraSource.CAMERA_FACING_BACK) {
+                    if (cameraSource.getCameraFacing() == CameraSource.CAMERA_FACING_BACK) {
                         cameraSource.setFacing(CameraSource.CAMERA_FACING_FRONT);
                     } else {
                         cameraSource.setFacing(CameraSource.CAMERA_FACING_BACK);
@@ -160,31 +166,32 @@ public final class CameraPreviewActivity extends AppCompatActivity
             }
         }
     }
+    @SuppressLint("DefaultLocale")
     public void receiveData() {
         readBufferPosition = 0;
         readBuffer = new byte[1024];
         workerThread = new Thread(() -> {
-            String str = new String();
+            StringBuilder str = new StringBuilder();
             while(!Thread.currentThread().isInterrupted()) {
                 try {
                     int byteAvailable = inputStream.available();
                     if(byteAvailable >= 2) {
                         byte[] bytes = new byte[byteAvailable];
                         inputStream.read(bytes);
-                        str += new String(bytes, "US-ASCII");
+                        str.append(new String(bytes, StandardCharsets.US_ASCII));
                         Log.d("bluetoothData", "received : " + str);
-                        while(str!=null && str.length()>= 2){
+                        while(str.length() >= 2){
                             String subString = str.substring(0, 2);
                             if(subString.equals("!~")) {
+                                sendData("@" + String.format("%.2f", LeftEyeOpenProbability).replace(".", "") + String.format("%.2f", RightEyeOpenProbability).replace(".", "") + "~");
+                            }
+                            else if (subString.equals("^~")) {
                                 if (LeftEyeOpenProbability == -2 || RightEyeOpenProbability == -2)
                                     sendData("#~");
                                 else
-                                    sendData("@" + String.format("%.2f", LeftEyeOpenProbability).replace(".", "") + String.format("%.2f", RightEyeOpenProbability).replace(".", "") + "~");
+                                    sendData("%" + (SmileProbability >= 0.7 ? "2" : drowsinessTime > 600 ? "1" : "0") + "~");
                             }
-                            else if (subString.equals("^~")) {
-                                sendData("%" + (SmileProbability >= 0.7 ? "2" : drowsinessTime > 600 ? "1" : "0") + "~");
-                            }
-                            str = str.length() > 2 ? str.substring(2) : "";
+                            str = new StringBuilder(str.length() > 2 ? str.substring(2) : "");
                             Log.d("bluetoothData", "now : " + str);
                         }
                     }
@@ -376,6 +383,7 @@ public final class CameraPreviewActivity extends AppCompatActivity
         Log.i(TAG, "Permission NOT granted: " + permission);
         return false;
     }
+    @SuppressLint("StaticFieldLeak")
     private class ConnectBT extends AsyncTask<Void, Void, Void> {
         private boolean connectSuccess = true;
 
