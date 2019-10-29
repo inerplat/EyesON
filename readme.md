@@ -95,7 +95,7 @@
 
  - [Drowsy Driver Detection System Using Eye Blink(2018)](https://www.researchgate.net/publication/251970873_Drowsy_driver_detection_system_using_eye_blink_patterns)
 
- - [The spontaneous eye-blink as sleepiness indicator in patients with obstructive sleep apnoea syndrome-a pilot study (2005)](https://www.researchgate.net/publication/251970873_Drowsy_driver_detection_system_using_eye_blink_patterns)
+ - [The spontaneous eye-blink as sleepiness indicator in patients with obstructive sleep apnoea syndrome-a pilot study (2005)](https://www.academia.edu/27532896/The_spontaneous_eye-blink_as_sleepiness_indicator_in_patients_with_obstructive_sleep_apnoea_syndrome-a_pilot_study)
 
 ### 통신 프로토콜
 
