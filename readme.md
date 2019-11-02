@@ -4,11 +4,8 @@
 [![GitHub](https://img.shields.io/github/license/inerplat/EyesON)](https://github.com/inerplat/EyesON/blob/master/LICENSE)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/inerplat/EyesON?include_prereleases)](https://github.com/inerplat/EyesON/releases)
 
-
 [![GitHub issues](https://img.shields.io/github/issues/inerplat/EyesON?color=red)](https://github.com/inerplat/EyesON/issues)
-[![GitHub closed issues](https://img.shields.io/github/issues-closed/inerplat/EyesON?color=green)](https://github.com/inerplat/EyesON/issues?q=is%3Aissue+is%3Aclosed)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/inerplat/EyesON)](https://github.com/inerplat/EyesON/pulls)
-[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/inerplat/EyesON)](https://github.com/inerplat/EyesON/pulls?q=is%3Apr+is%3Aclosed)
 
 [![GitHub project](https://img.shields.io/badge/Project-Khanban-ff509f?style=for-the-badge)](https://github.com/inerplat/EyesON/projects/1)
 
